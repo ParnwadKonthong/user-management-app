@@ -15,13 +15,10 @@
           <td>{{ user.name }}</td>
           <td>{{ user.email }}</td>
           <td>
-            <button class="btn btn-warning me-1" @click="editUser(user)">
+            <button class="btn btn-warning me-1" @click="openEditDialog(user)">
               Edit
             </button>
-            <button
-              class="btn btn-danger ms-1"
-              @click="deleteUser(user.id)"
-            >
+            <button class="btn btn-danger ms-1" @click="openDeleteDialog(user)">
               Delete
             </button>
           </td>
@@ -29,7 +26,7 @@
       </tbody>
     </table>
 
-     <div v-if="editingUser" class="modal">
+    <div v-if="editingUser" class="modal">
       <div class="modal-content">
         <h3 class="p-3">Edit User</h3>
         <form @submit.prevent="updateUser">
@@ -52,8 +49,42 @@
             />
           </div>
           <div class="form-actions p-3">
-            <button type="submit" class="btn btn-success btn-edit me-4">Save</button>
-            <button @click="cancelEdit" type="button" class="btn btn-secondary btn-edit ms-4">Cancel</button>
+            <button
+              type="submit"
+              class="btn btn-success btn-edit me-4"
+            >
+              Save
+            </button>
+            <button
+              @click="cancelEdit"
+              type="button"
+              class="btn btn-secondary btn-edit ms-4"
+            >
+              Cancel
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <div v-if="deletingUser" class="modal">
+      <div class="modal-content">
+        <h3 class="p-3">Delete User</h3>
+        <form @submit.prevent="deleteUser">
+          <div class="form-group">
+            Are you sure delete {{ deletingUser.name }}?
+          </div>
+          <div class="form-actions p-3">
+            <button type="submit" class="btn btn-danger btn-edit me-4">
+              Delete
+            </button>
+            <button
+              @click="cancelDelete"
+              type="button"
+              class="btn btn-secondary btn-edit ms-4"
+            >
+              Cancel
+            </button>
           </div>
         </form>
       </div>
@@ -74,19 +105,17 @@ export default {
   setup() {
     const userStore = useUserStore();
     const editingUser = ref("");
+    const deletingUser = ref("");
     const users = userStore.users;
 
-    const editUser = (user) => {
-      openEditDialog(user);
-    };
-
+    // Edit
     const openEditDialog = (user) => {
       editingUser.value = { ...user };
     };
 
     const updateUser = () => {
       if (editingUser.value) {
-        userStore.editUser(editingUser.value.id, {
+        userStore.editUser(editingUser.value, {
           name: editingUser.value.name,
           email: editingUser.value.email,
         });
@@ -98,33 +127,41 @@ export default {
       editingUser.value = null;
     };
 
-    const deleteUser = (userId) => {
-      const confirmed = window.confirm(
-        "Are you sure you want to delete this user?"
-      );
-      if (confirmed) {
-        userStore.deleteUser(userId);
+    // Delete
+    const openDeleteDialog = (user) => {
+      deletingUser.value = { ...user };
+    };
+
+    const deleteUser = () => {
+      if (deletingUser.value) {
+        userStore.deleteUser(deletingUser.value.id);
+        deletingUser.value = null;
         location.reload();
         // window.location.reload()
         // document.location.reload()
       }
     };
 
+    const cancelDelete = () => {
+      deletingUser.value = null;
+    };
+
     return {
       users,
-      editUser,
-      editingUser,
       openEditDialog,
+      editingUser,
       updateUser,
       cancelEdit,
+      openDeleteDialog,
+      deletingUser,
       deleteUser,
+      cancelDelete,
     };
   },
 };
 </script>
 
 <style scoped>
-
 .table {
   width: 100%;
   margin-top: 20px;
@@ -147,20 +184,20 @@ th {
 }
 
 .modal {
-    position: absolute;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    background-color:rgba(0, 0, 0, 0.5);
+  position: absolute;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background-color: rgba(0, 0, 0, 0.5);
 }
 .modal-content {
-    width: 100%;
-    max-width: 600px;
-    margin: 0 3rem;
-    padding: 0 2rem;
+  width: 100%;
+  max-width: 600px;
+  margin: 0 3rem;
+  padding: 0 2rem;
 }
 
-.btn-edit{
-    width: 160px;
+.btn-edit {
+  width: 160px;
 }
 </style>

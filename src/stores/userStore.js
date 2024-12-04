@@ -10,7 +10,6 @@ export const useUserStore = defineStore("userStore", {
         (existingUser) =>
           existingUser.name === user.name || existingUser.email === user.email
       );
-
       if (isDuplicate) {
         alert("This name or email already exists!");
       } else {
@@ -22,11 +21,18 @@ export const useUserStore = defineStore("userStore", {
         localStorage.setItem("users", JSON.stringify(this.users));
       }
     },
-    editUser(userId, updatedData) {
-      const userIndex = this.users.findIndex((user) => user.id === userId);
-      if (userIndex !== -1) {
-        this.users[userIndex] = { ...this.users[userIndex], ...updatedData };
-        localStorage.setItem("users", JSON.stringify(this.users));
+    editUser(editingUser, updatedData) {
+      const isDuplicate = this.users.some((user) => {
+        return (user.email === editingUser.email || user.name === editingUser.name) && user.id !== editingUser.id
+      })
+      if (isDuplicate) {
+        alert("This name or email already exists!");
+      } else {
+        const userIndex = this.users.findIndex((user) => user.id === editingUser.id);
+        if (userIndex !== -1) {
+          this.users[userIndex] = { ...this.users[userIndex], ...updatedData };
+          localStorage.setItem("users", JSON.stringify(this.users));
+        }
       }
     },
     deleteUser(userId) {
